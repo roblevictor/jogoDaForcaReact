@@ -1,0 +1,248 @@
+##https://jsfiddle.net/roblevictor_/q5dmayok/185/
+
+
+#html
+<div id="app"></div>
+
+#css
+body {
+  background: #BDD4F1;
+  padding: 15px;
+  font-family: bold;
+  display: flex;
+  justify-content: center;
+}
+
+#app {
+  background: #89D3F0;
+  border-radius: 4px;
+  padding: 15px;
+  transition: all 0.2s;
+  
+}
+
+li {
+  margin: 8px 0;
+}
+h1{
+  display:flex;
+  justify-content: center;
+}
+
+h2 {
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+img{
+  display:flex;
+  align-items:center;
+  margin-left:0px;
+}
+
+.done {
+  color: rgba(0, 0, 0, 0.3);
+  text-decoration: line-through;
+}
+
+button {
+  border: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #719CD9;
+  color: #fff;
+  width: 130px;
+  display: flex;
+  justify-content:center;
+}
+
+input {
+  display: flex;
+  align-items:center;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px; 
+  margin-bottom: 12px;
+}
+span{
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+
+#JSX
+function JogoForca(){
+	const [palavra, setPalavra] = React.useState('')
+  const [jogoAtivo, setJogoAtivo] = React.useState(false)
+  const palavraInput = React.useRef(null)
+  
+  function filtraPalavra(palavra){
+  	if(palavra.length <= 0){
+    	setPalavra('favor inserir uma palavra')
+    } else {
+    	setJogoAtivo(true)
+    }
+  }
+  
+  function mudarJogoAtivo(estado){
+  	setJogoAtivo(estado)
+  }
+  
+	return (
+  	<div>
+      <div style={{"display": jogoAtivo ? "none" : "block"}}>
+         <h1 style={{fontWeight: "bold", fontSize: "24px",  }}>Jogo da Forca</h1><br/>
+         <div >
+           <img src="https://th.bing.com/th/id/OIP.LhJKIBB_NxeVwnjYB0K9XwAAAA?pid=ImgDet&w=181&h=181&c=7" alt="imagem de um jogo da forca" style={{maxWidth: "100%", maxHeight: "100%"}} />
+         </div>
+         <br/>
+        <span>Informe a palavra-chave</span>
+        <input type="text" ref={palavraInput} placeholder={palavra} onInput={(e) => setPalavra(e.target.value)} />
+        <button onClick={(e) => filtraPalavra(palavraInput.current.value)} style={{ margin: "auto" }}>
+  Enviar
+      </button>
+      </div>
+      
+      <Tentativas jogoAtivo={jogoAtivo} palavra={palavra} mudarJogoAtivo={mudarJogoAtivo} />
+      
+    </div>
+  )
+}
+
+function Tentativas(props){
+  
+  const [showString, setShowString] = props.jogoAtivo === true ? React.useState('block') : React.useState('none')
+  const [numTentativas, setNumTentativas] = React.useState(10)
+  const [letra, setLetra] = React.useState('')
+  const [palavraCompleta, setPalavraCompleta] = React.useState('')
+  const [palavraMap, setPalavraMap] = React.useState(new Object())
+  const [letrasTentativas, setletrasTentativas] = React.useState([])
+  const [letrasIncorretas, setLetrasIncorretas] = React.useState([])
+  const [letrasExibidas, setletrasExibidas] = React.useState([])
+  
+  const letraInput = React.useRef(null)
+  const palavraInput = React.useRef(null)
+  
+  
+	React.useEffect(() => {
+  	setShowString(props.jogoAtivo === true ? 'block' : 'none')
+    
+    if(props.jogoAtivo === true){
+    	const palavraObj = {}
+      const letrasExibidasInit = []
+      const palavraLen = props.palavra.length
+      
+     // Quando o componente é montado, constui o objeto palavraMap  para ajudar a rastrear a posição de cada letra na palavra.
+      for(let i = 0; i < palavraLen; i++){
+      	if(!(props.palavra[i] in palavraObj)){
+        	palavraObj[props.palavra[i]] = [i]
+        } else {
+        	palavraObj[props.palavra[i]].push(i)
+        }
+        letrasExibidasInit.push('_')
+      }
+      
+      setPalavraMap(palavraObj)
+      setletrasExibidas(letrasExibidasInit)
+    }
+      
+  }, [props.jogoAtivo])
+  
+  function limpaVariaveis(){
+  	setNumTentativas(10)
+    setLetra('')
+    letraInput.current.value = ''
+    setPalavraCompleta('')
+    setPalavraMap(new Object())
+    setletrasTentativas([])
+    setLetrasIncorretas([])
+    setletrasExibidas([])
+    palavraInput.current.value = ''
+  }
+  
+  function adivinhaLetra(letra){
+  if(letrasTentativas.includes(letra)){
+    alert('Essa letra já foi informada!')
+    return
+  }
+
+  if(numTentativas == 0){
+    alert('Game over! a palavra-chave esperada era '+props.palavra)
+    limpaVariaveis()
+    props.mudarJogoAtivo(false)
+    return
+  } 
+
+
+  if(letra in letrasTentativas){
+
+    alert('Essa letra já foi informada!')
+    return
+  }
+  
+  
+  if(letra in palavraMap){
+       
+    let letrasExibidasCopia = letrasExibidas
+      
+    for(let i = 0; i < palavraMap[letra].length; i++){
+      letrasExibidasCopia[palavraMap[letra][i]] = letra
+    }
+      
+    setletrasExibidas(letrasExibidasCopia)
+    console.log(palavraMap)
+    console.log(letrasExibidas)
+    if(!letrasExibidas.includes('_')){
+      alert('Parabéns! Você acertou! A palavra correta é: '+props.palavra)
+      limpaVariaveis()
+      props.mudarJogoAtivo(false)
+      return
+    }
+  } else {
+    setLetrasIncorretas([...letrasIncorretas, letra])
+    setNumTentativas(numTentativas - 1)
+  }
+  letraInput.current.value = ''
+  setletrasTentativas([...letrasTentativas, letra])
+}
+
+  function adivinhaPalavra(palavra){
+  	if(palavra !== props.palavra){
+    	alert('Game over! a palavra-chave esperada era '+props.palavra)
+      limpaVariaveis()
+      props.mudarJogoAtivo(false)
+      return
+    } else {
+      alert('Parabéns! Você acertou! A palavra-chave é '+props.palavra)
+      limpaVariaveis()
+      props.mudarJogoAtivo(false)
+      return
+    }
+  }
+  
+	return (
+  	<div style={{"display": showString}}>
+    <h1 style={{fontWeight: "bold", fontSize: "24px",  }}>Jogo da Forca</h1><br/>
+    <div style={{width: "100px", height: "100px"}}>
+           <img src="https://th.bing.com/th/id/OIP.LhJKIBB_NxeVwnjYB0K9XwAAAA?pid=ImgDet&w=181&h=181&c=7" alt="imagem de um jogo da forca" style={{maxWidth: "100%", maxHeight: "100%"}} />
+         </div>
+  	  {letrasExibidas.join(',')}<br />
+      Você tem {numTentativas} tentativas restantes!<br />
+      Tente acertar a palavra correta! Informe uma letra: 
+      <input type="text" ref={letraInput} placeholder="Letra" maxLength={1} onInput={(e) => setLetra(e.target.value)} />
+        <button onClick={(e) => adivinhaLetra(letraInput.current.value)}>
+          Enviar tentativa
+        </button><hr />
+        {letrasIncorretas.length > 0 &&
+        	<span>Tentativas incorretas: {letrasIncorretas.join(',')} <br /></span>
+        }
+        Ou tente adivinhar a palavra completa!<br />
+        Informe a palavra completa <input type="text" ref={palavraInput} placeholder="Palavra completa" onInput={(e) => setPalavraCompleta(e.target.value)} />
+        <button onClick={(e) => adivinhaPalavra(palavraInput.current.value)}>
+          Enviar 
+        </button>
+  	</div>
+  )
+}
+
+const root = ReactDOM.createRoot(document.querySelector("#app"))
+root.render(<JogoForca />)
